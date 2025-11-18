@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Royal Castle Academy CBT (Fixed)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background-color: #001f4d; font-family: 'Segoe UI', sans-serif; margin:0; min-height:100vh; display:flex; justify-content:center; align-items:center;}
+  .header-bar { background-color: #001f4d; color: #ffd700; font-weight:bold; font-size:26px; padding:20px; text-align:center; border-bottom: 4px solid #ffd700; }
+  .sub-header { background-color: #003080; color: #ffd700; padding:8px 15px; font-size:16px; text-align:center; font-weight:600; border-radius:6px; margin-top:5px;}
+  .card { background:white; border-radius:12px; padding:25px; max-width:950px; width:95%; box-shadow:0 5px 25px rgba(0,0,0,0.15); position:relative; }
+  .option { display:flex; align-items:center; border:2px solid #001f4d; border-radius:10px; padding:12px; margin-top:10px; cursor:pointer; transition:0.3s; opacity:1; }
+  .option:hover { background-color: #e6edff; }
+  .option.selected { background-color: #d4edda; border-color:#009900; transform: scale(1.03); animation: pulse 0.3s; }
+  @keyframes pulse { 0%{transform:scale(1.03)} 50%{transform:scale(1.05)} 100%{transform:scale(1.03)} }
+  .btn-primary { background-color: #001f4d; color:white; font-weight:600; padding:10px 16px; border-radius:8px; margin-top:15px; cursor:pointer; border:none; }
+  .btn-primary:hover { background-color:#003080; }
+  input[type='radio'] { margin-right:10px; }
+  .progress-container { width:100%; background:#e0e0e0; border-radius:8px; margin-bottom:10px; height:18px; }
+  .progress-bar { height:100%; width:0%; background:#00cc66; border-radius:8px; transition:width 0.5s ease; }
+  .timer-bar-container { width:100%; background:#e0e0e0; border-radius:8px; height:12px; margin-top:10px; }
+  .timer-bar { height:100%; width:100%; background:#ff4d4d; border-radius:8px; transition:width 1s linear; }
+  table { width:100%; border-collapse: collapse; margin-top:15px; }
+  th, td { border:1px solid #001f4d; padding:8px; text-align:center; }
+  th { background-color:#001f4d; color:#ffd700; }
+  td { background-color:#f0f4ff; }
+  .muted { color:#666; font-size:14px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ---------------------- QUESTION BANK ----------------------
+const ORIGINAL_QUESTIONS = [
+  { id:1, q:"Simplify: √50.", choices:["5√2","10√5","25","√25 + √2"], answer:0 },
+  { id:2, q:"Rationalize the denominator of 3/√5.", choices:["3√5/25","3√5/5","3√5","3√25"], answer:1 },
+  { id:3, q:"Simplify: √27 + √12.", choices:["5√3","7√3","3√3","9√3"], answer:1 },
+  { id:4, q:"If x = 2√3, find x².", choices:["6","12","4√3","6√2"], answer:1 },
+  { id:5, q:"Simplify: √5 × √20.", choices:["10","5√20","10√5","10√2"], answer:0 },
+  { id:6, q:"Evaluate: log₁₀(1000).", choices:["1","2","3","4"], answer:2 },
+  { id:7, q:"If log₂x = 5, find x.", choices:["10","25","32","64"], answer:2 },
+  { id:8, q:"Simplify: log₃(9).", choices:["1","2","3","1/2"], answer:1 },
+  { id:9, q:"Expand: log(5x²).", choices:["log 5 + 2 log x","5 log x + 2 log 5","log 5 + log x","log 5 × log x"], answer:0 },
+  { id:10, q:"Solve: log₄(x-1)=2.", choices:["3","5","15","17"], answer:2 },
+  { id:11, q:"Express 5/(x−2) as partial fractions.", choices:["A/x + B/(x−2)","5(x−2)","Not possible","Already a partial fraction"], answer:0 },
+  { id:12, q:"(7x+5)/(x²−1) can be written as:", choices:["A/(x−1) + B/(x+1)","A/x + B/x²","A(x+1) + B(x−1)","None"], answer:0 },
+  { id:13, q:"The expression A/(x−3) + B/(x+3) is:", choices:["Linear factors","Quadratic factors","Irreducible factors","Exponential factors"], answer:0 },
+  { id:14, q:"In (4x+1)/(x²−4)=A/(x−2)+B/(x+2), A and B are:", choices:["Constants","Variables","Surds","Logarithms"], answer:0 },
+  { id:15, q:"To find A and B in partial fractions, you:", choices:["Differentiate both sides","Clear denominators","Integrate both sides","Take logs"], answer:1 },
+  { id:16, q:"Evaluate: ⁵P₂.", choices:["10","15","20","30"], answer:2 },
+  { id:17, q:"Number of arrangements of CAT.", choices:["3","6","9","12"], answer:1 },
+  { id:18, q:"Number of 4-digit PINs (0–9) without repetition.", choices:["10","100","3024","5040"], answer:2 },
+  { id:19, q:"Ways to arrange 6 students in a line.", choices:["36","120","720","840"], answer:2 },
+  { id:20, q:"⁷P₃ equals:", choices:["35","210","504","420"], answer:1 },
+  { id:21, q:"Evaluate: ⁵C₂.", choices:["5","10","15","20"], answer:1 },
+  { id:22, q:"Number of ways to choose 3 from 8.", choices:["24","48","56","336"], answer:2 },
+  { id:23, q:"⁹C₁ equals:", choices:["1","9","81","720"], answer:1 },
+  { id:24, q:"Committees of 4 from 10 people.", choices:["210","5040","90","30"], answer:0 },
+  { id:25, q:"⁸C₀ equals:", choices:["0","1","8","Undefined"], answer:1 }
+];
+
+// ---------------------- STATE ----------------------
+let QUESTIONS = [];
+let page = 0;
+let selectedAnswers = [];
+let timerInterval = null;
+let examDurationSeconds = 40 * 60; // 40 minutes
+let timeLeft = examDurationSeconds;
+let currentStudent = "";
+
+// ---------------------- UTILS ----------------------
+function shuffleArray(array){
+  for(let i=array.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// ---------------------- RENDER: LOGIN ----------------------
+function renderLogin(){
+  document.getElementById('app').innerHTML = `
+  <div class="card">
+    <div class="header-bar">THE ROYAL CASTLE ACADEMY OTUKPO</div>
+    <div class="sub-header">2025/2026 Academic Session | Mock Examination</div>
+    <h2 class="text-xl font-bold mt-4 mb-2 text-blue-900">Student Login</h2>
+    <input id="user" class="border p-2 w-full rounded mb-3" placeholder="Full Name (e.g. John Doe)">
+    <input id="pass" type="password" class="border p-2 w-full rounded mb-3" placeholder="Password">
+    <div class="flex items-center justify-between">
+      <div class="muted">Student password: <strong>1234</strong></div>
+      <div class="muted">Admin: <strong>admin</strong> / <strong>admin123</strong></div>
+    </div>
+    <button class="btn-primary w-full" onclick="login()">Login</button>
+  </div>`;
+}
+
+// ---------------------- LOGIN ACTION ----------------------
+function login(){
+  const username = (document.getElementById('user').value || "").trim();
+  const password = (document.getElementById('pass').value || "").trim();
+
+  if(!username){
+    alert("Please enter your full name.");
+    return;
+  }
+
+  // Admin credentials (specific as requested)
+  if(username.toLowerCase() === "admin" && password === "admin123"){
+    renderAdmin();
+    return;
+  }
+
+  // Student simple credential: password = 1234
+  if(password === "1234"){
+    currentStudent = username;
+    // Create a fresh randomized copy of questions
+    QUESTIONS = JSON.parse(JSON.stringify(ORIGINAL_QUESTIONS));
+    shuffleArray(QUESTIONS);
+    selectedAnswers = Array(QUESTIONS.length).fill(null);
+    timeLeft = examDurationSeconds;
+    renderInstructions();
+    return;
+  }
+
+  alert("Incorrect credentials. Students: use password 1234. Admin has separate login.");
+}
+
+// ---------------------- INSTRUCTIONS ----------------------
+function renderInstructions(){
+  document.getElementById('app').innerHTML = `
+  <div class="card">
+    <div class="header-bar">THE ROYAL CASTLE ACADEMY OTUKPO</div>
+    <div class="sub-header">2025/2026 Academic Session | Mock Examination</div>
+    <h2 class="text-xl font-bold mt-4 mb-4 text-blue-900">Exam Instructions</h2>
+    <ul class="list-disc pl-5 mb-4">
+      <li>Enter your full name correctly; it will be recorded.</li>
+      <li>25 Questions, 40 Minutes</li>
+      <li>5 Questions Per Page</li>
+      <li>Selected option turns green with a subtle animation</li>
+      <li>Use Next/Previous to navigate</li>
+      <li>Auto-submit when time expires</li>
+      <li>Do not refresh or close the browser</li>
+    </ul>
+    <div class="muted mb-3">Student: <strong>${currentStudent}</strong></div>
+    <button class="btn-primary w-full" onclick="startExam()">Start Exam</button>
+    <button class="btn-primary w-full mt-2" onclick="renderLogin()">Logout</button>
+  </div>`;
+}
+
+// ---------------------- EXAM UI ----------------------
+function startExam(){
+  page = 0;
+  selectedAnswers = Array(QUESTIONS.length).fill(null);
+  timeLeft = examDurationSeconds;
+  startTimer();
+  renderExam();
+}
+
+function renderExam(){
+  const perPage = 5;
+  const start = page * perPage;
+  const end = Math.min(start + perPage, QUESTIONS.length);
+  const visible = QUESTIONS.slice(start, end);
+  const answeredCount = selectedAnswers.filter(a => a !== null).length;
+  const progressPercent = Math.floor((answeredCount / QUESTIONS.length) * 100);
+
+  let html = `
+  <div class="card">
+    <div class="header-bar">THE ROYAL CASTLE ACADEMY OTUKPO</div>
+    <div class="sub-header">2025/2026 Academic Session | Mock Examination</div>
+
+    <div class="progress-container mb-2"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
+    <div class="timer-bar-container"><div class="timer-bar" style="width:${Math.max(0, Math.floor(timeLeft / examDurationSeconds * 100))}%"></div></div>
+
+    <div class="flex justify-between mb-4 mt-2">
+      <div>Answered: ${answeredCount}/${QUESTIONS.length}</div>
+      <div class="timer font-bold text-red-600">Time: ${formatTime(timeLeft)}</div>
+    </div>
+  `;
+
+  visible.forEach((q, idx) => {
+    const qIndex = start + idx;
+    html += `<p class="font-semibold mb-2">${qIndex+1}. ${q.q}</p>`;
+    q.choices.forEach((choice, cIdx) => {
+      const letter = ['A','B','C','D'][cIdx] || String.fromCharCode(65 + cIdx);
+      const isSelected = selectedAnswers[qIndex] === cIdx;
+      html += `
+      <label class="option ${isSelected ? 'selected' : ''}" onclick="selectOption(${qIndex}, ${cIdx}, this)">
+        <input type="radio" name="q${qIndex}" value="${cIdx}" ${isSelected ? 'checked' : ''} />
+        ${letter}. ${choice}
+      </label>`;
+    });
+  });
+
+  html += `
+    <div class="flex justify-between mt-4">
+      <button class="btn-primary" onclick="prevPage()" ${page === 0 ? 'disabled' : ''}>Previous</button>
+      <div class="flex gap-2">
+        <button class="btn-primary" onclick="confirmSubmit()">Submit</button>
+        <button class="btn-primary" onclick="showQuestionPalette()">Questions</button>
+      </div>
+      <button class="btn-primary" onclick="nextPage()" ${page >= Math.ceil(QUESTIONS.length / perPage)-1 ? 'disabled' : ''}>Next</button>
+    </div>
+  </div>
+  `;
+
+  document.getElementById('app').innerHTML = html;
+}
+
+// ---------------------- OPTION SELECT ----------------------
+function selectOption(qIndex, optIndex, labelEl){
+  selectedAnswers[qIndex] = optIndex;
+  // update UI: remove previous selections in this page and add selected class to clicked
+  document.querySelectorAll('.card label.option').forEach(el => el.classList.remove('selected'));
+  if(labelEl) labelEl.classList.add('selected');
+}
+
+// ---------------------- NAVIGATION ----------------------
+function prevPage(){ if(page > 0){ page--; renderExam(); } }
+function nextPage(){ if(page < Math.ceil(QUESTIONS.length / 5) - 1){ page++; renderExam(); } }
+
+// ---------------------- SUBMIT ----------------------
+function confirmSubmit(){
+  if(confirm("Submit exam now?")) submitExam();
+}
+
+function submitExam(){
+  clearInterval(timerInterval);
+  let score = 0;
+  for(let i=0;i<QUESTIONS.length;i++){
+    if(selectedAnswers[i] !== null && selectedAnswers[i] === QUESTIONS[i].answer) score++;
+  }
+  const submissions = JSON.parse(localStorage.getItem('cbt_submissions') || '[]');
+  submissions.push({ student: currentStudent, score: score, time: new Date().toLocaleString() });
+  localStorage.setItem('cbt_submissions', JSON.stringify(submissions));
+
+  document.getElementById('app').innerHTML = `
+  <div class="card text-center">
+    <div class="header-bar">THE ROYAL CASTLE ACADEMY OTUKPO</div>
+    <div class="sub-header">2025/2026 Academic Session | Mock Examination</div>
+    <h2 class="text-2xl font-bold mb-3 text-green-700">Exam Submitted</h2>
+    <p>Student: <strong>${currentStudent}</strong></p>
+    <p>Your Score: <strong>${score}/${QUESTIONS.length}</strong></p>
+    <div class="mt-4">
+      <button class="btn-primary w-full" onclick="retryExam()">Try Again</button>
+      <button class="btn-primary w-full mt-2" onclick="renderLogin()">Logout</button>
+    </div>
+  </div>
+  `;
+}
+
+// ---------------------- RETRY ----------------------
+function retryExam(){
+  QUESTIONS = JSON.parse(JSON.stringify(ORIGINAL_QUESTIONS));
+  shuffleArray(QUESTIONS);
+  selectedAnswers = Array(QUESTIONS.length).fill(null);
+  timeLeft = examDurationSeconds;
+  startExam();
+}
+
+// ---------------------- ADMIN ----------------------
+function renderAdmin(){
+  const submissions = JSON.parse(localStorage.getItem('cbt_submissions') || '[]');
+  let html = `
+  <div class="card">
+    <div class="header-bar">THE ROYAL CASTLE ACADEMY OTUKPO</div>
+    <div class="sub-header">2025/2026 Academic Session | Mock Examination</div>
+    <h2 class="text-xl font-bold text-blue-700 mb-4">Admin Dashboard</h2>
+  `;
+  if(submissions.length === 0){
+    html += '<p>No submissions yet.</p>';
+  } else {
+    html += `<table><tr><th>Student Name</th><th>Score</th><th>Time</th></tr>`;
+    submissions.forEach(s => {
+      html += `<tr><td>${escapeHtml(s.student)}</td><td>${s.score}</td><td>${s.time}</td></tr>`;
+    });
+    html += `</table>`;
+  }
+
+  html += `<div class="mt-4">
+    <button class="btn-primary w-full" onclick="clearSubmissions()">Clear Records</button>
+    <button class="btn-primary w-full mt-2" onclick="renderLogin()">Logout</button>
+  </div>
+  </div>`;
+
+  document.getElementById('app').innerHTML = html;
+}
+
+function clearSubmissions(){
+  if(confirm("Are you sure you want to clear all submissions?")){
+    localStorage.removeItem('cbt_submissions');
+    renderAdmin();
+  }
+}
+
+// ---------------------- TIMER ----------------------
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const timerBar = document.querySelector('.timer-bar');
+    if(timerBar) timerBar.style.width = (Math.max(0, timeLeft / examDurationSeconds * 100)) + '%';
+    const timerEl = document.querySelector('.timer');
+    if(timerEl) timerEl.innerHTML = `Time: ${formatTime(timeLeft)}`;
+    if(timeLeft <= 0){
+      submitExam();
+    }
+  }, 1000);
+}
+
+function formatTime(sec){
+  if(sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+// ---------------------- QUESTION PALETTE ----------------------
+function showQuestionPalette(){
+  // quick modal showing answered/unanswered question numbers
+  const items = QUESTIONS.map((q, i) => {
+    const status = selectedAnswers[i] === null ? '◻' : '◼';
+    return `${i+1}:${status}`;
+  }).join(' ');
+  alert("Question palette (number:status)\n\n" + items + "\n\nBlack square = answered, White = unanswered");
+}
+
+// ---------------------- SAFETY & HELPERS ----------------------
+function escapeHtml(text){
+  if(!text) return '';
+  return text.replace(/[&<>"'`=\/]/g, function(s){ return ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#47;','`':'&#96;','=':'&#61;'
+  })[s]; });
+}
+
+// ---------------------- INIT ----------------------
+document.addEventListener('DOMContentLoaded', () => {
+  // initialize QUESTIONS to a copy to avoid accidental mutation
+  QUESTIONS = JSON.parse(JSON.stringify(ORIGINAL_QUESTIONS));
+  renderLogin();
+});
+</script>
+</body>
+</html>
